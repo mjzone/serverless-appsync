@@ -1,0 +1,140 @@
+schema {
+    query: Query
+    mutation: Mutation
+}
+
+type Query {
+    getMyProfile: MyProfile!
+    getProfile(screenName: String!): OtherProfile!
+    getTweets(userId: ID!, limit: Int!, nextToken: String): TweetsPage!
+    getLikes(userId: ID!, limit: Int!, nextToken: String): TweetsPage!
+    getFollwers(userId: ID!, limit: Int!, nextToken: String): ProfilePage!
+    getFollowing(userId: ID!, limit: Int!, nextToken: String): ProfilePage!
+    getMyTimeline(limit: Int!, nextToken: String): TweetsPage!
+    getImageUploadUrl(extension: String, contentType: String): AWSURL! # Getting a signed URL for uploading user profile images
+}
+
+type MyProfile implements IProfile {
+    id: ID!
+    name: String!
+    screenName: String!
+    imageUrl: String
+    backgroundImageUrl: String
+    bio: String
+    location: String
+    website: AWSURL
+    birthdate: AWSDate
+    createdAt: AWSDateTime!
+    tweets: TweetsPage!
+    followersCount: Int!
+    followingCount: Int!
+    tweetsCount: Int!
+    likesCount: Int!
+}
+
+type TweetsPage {
+    tweets: [ITweet!]
+    nextToken: String!
+}
+
+type ProfilePage {
+    profiles: [IProfile!]
+    nextToken: String
+}
+
+type Tweet implements ITweet {
+    id: ID!
+    profile: IProfile!
+    createdAt: AWSDateTime!
+    text: String!
+    likes: Int!
+    replies: Int!
+    retweets: Int!
+    liked: Boolean!
+    retweeted: Boolean!
+}
+
+type Reply implements ITweet {
+    id: ID!
+    profile: IProfile!
+    createdAt: AWSDateTime!
+    text: String!
+    inReplyTo: ITweet!
+    inReplyToUsers: [IProfile!]
+    likes: Int!
+    replies: Int!
+    retweets: Int!
+    liked: Boolean!
+    retweeted: Boolean!
+}
+
+type Retweet implements ITweet{ 
+    id: ID!
+    profile: IProfile!
+    createdAt: AWSDateTime!
+    retweetOf: ITweet! # Can be a tweet, retweet or reply
+}
+
+type OtherProfile implements IProfile {
+    id: ID!
+    name: String!
+    screenName: String!
+    imageUrl: String
+    backgroundImageUrl: String
+    bio: String
+    location: String
+    website: AWSURL
+    birthdate: AWSDate
+    createdAt: AWSDateTime!
+    tweets: TweetsPage!
+    followersCount: Int!
+    followingCount: Int!
+    tweetsCount: Int!
+    likesCount: Int!
+    following: Boolean!
+    followedBy: Boolean!
+}
+
+type Mutation {
+    editMyProfile(newProfile: ProfileInput!): MyProfile!
+    tweet(text: String!): Tweet!
+    like(tweetId: ID!): Boolean! # There are no void types in GraphQL. So let's return a boolean (Convension)
+    unlike(tweetId: ID!): Boolean!
+    follow(userId: ID!): Boolean!
+    unfollow(userId: ID!): Boolean!
+    retweet(tweetId: ID!): Boolean!
+    unretweet(tweetId: ID!): Boolean!
+    reply(tweetId: ID!, text: String!): Reply!
+
+}
+
+input ProfileInput { # Input types cannot be retured from a query/mutation. Only to pass arguments
+    name: String!
+    imageUrl: AWSURL
+    bio: String
+    backgroundImageUrl: AWSURL
+}
+
+interface IProfile {
+    id: ID!
+    name: String!
+    screenName: String!
+    imageUrl: String
+    backgroundImageUrl: String
+    bio: String
+    location: String
+    website: AWSURL
+    birthdate: AWSDate
+    createdAt: AWSDateTime!
+    tweets: TweetsPage!
+    followersCount: Int!
+    followingCount: Int!
+    tweetsCount: Int!
+    likesCount: Int!
+}
+
+interface ITweet {
+    id: ID!
+    profile: IProfile!
+    createdAt: AWSDateTime!
+}
